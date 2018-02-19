@@ -8,35 +8,58 @@ const initialLocations = [
     {title: 'Stanford', position: {lat: 37.427475, lng: -122.169719}},
 ];
 
-let initialized;
 let map;
-let infowindow;
 
-const Location = function(data) {
+const Location = function(data, populateInfowindow) {
     let self = this;
     this.title = ko.observable(data.title);
     this.position = ko.observable(data.position);
+    this.visible = ko.observable(true);
     this.marker = new google.maps.Marker({
         position: data.position,
         title: data.title,
         animation: google.maps.Animation.DROP,
-        map: map,
     });
 
-    this.populateInfoWindow = function() {
-        if (initialized && infowindow.marker !==  self.marker) {
+    self.marker.addListener('click', function() {
+        populateInfowindow(this);
+    });
+
+    this.showMarker = ko.computed(function() {
+        if(this.visible() === true) {
+            this.marker.setMap(map);
+        } else {
+            this.marker.setMap(null);
+        }
+        return true;
+    }, this);
+};
+
+const ViewModel = function() {
+    let self = this;
+
+    map = new google.maps.Map(document.getElementById('map'), {
+        center: initialLocations[0].position,
+        zoom: 13,
+        mapTypeControl: false
+    });
+
+    let infowindow = new google.maps.InfoWindow();
+
+    this.populateInfowindow = function(marker) {
+        if (infowindow.marker !==  marker) {
             infowindow.close();
             infowindow.setContent('');
-            infowindow.marker = self.marker;
+            infowindow.marker = marker;
             infowindow.addListener('closeclick', function() {
                 infowindow.marker = null;
             });
 
-            let contentStr = '<div class="title"><b>' + self.marker.title + '</b></div>';
-            let wikiUrl = 'https://en.wikipedia.org/w/api.php?action=opensearch&search=' + self.marker.title +
+            let contentStr = '<div class="title"><b>' + marker.title + '</b></div>';
+            let wikiUrl = 'https://en.wikipedia.org/w/api.php?action=opensearch&search=' + marker.title +
                 '&format=json&callback=wikiCallback';
             let wikiRequestTimeout = setTimeout(function(){
-                alert('Failed to get wikipedia resources.');
+                console.log('Failed to get wikipedia for ', marker.title);
             }, 2000);
             $.ajax({
                 url : wikiUrl,
@@ -46,56 +69,54 @@ const Location = function(data) {
                     const articles = data[3];
                     if (articles.length > 0) {
                         contentStr += '<div><a target="_blank" href="' + articles[0] +
-                            '">more on Wikipedia' + '</a></div>';
+                            '">' + articles[0] + '</a></div>';
                     }
                     clearTimeout(wikiRequestTimeout);
                     infowindow.setContent(contentStr);
-                    infowindow.open(map, self.marker);
+                    infowindow.open(map, marker);
                 },
                 error: function(data) {
                     infowindow.setContent(contentStr);
-                    infowindow.open(map, self.marker);
+                    infowindow.open(map, marker);
                 }
             });
 
-            self.marker.setAnimation(google.maps.Animation.BOUNCE);
+            marker.setAnimation(google.maps.Animation.BOUNCE);
             setTimeout(function() {
-                self.marker.setAnimation(null);
+                marker.setAnimation(null);
             }, 350);
         }
     };
-    self.marker.addListener('click', function() {
-        self.populateInfoWindow();
-    });
-};
 
-const ViewModel = function() {
-    let self = this;
-
-    initialized = null;
-
-    map = new google.maps.Map(document.getElementById('map'), {
-        center: {lat: 37.419858, lng: -122.078827},
-        zoom: 13,
-        mapTypeControl: false
-    });
-
-    this.locationList = ko.observableArray([]);
-
-    infowindow = new google.maps.InfoWindow();
+    this.initialLocationList = ko.observableArray([]);
 
     let bounds = new google.maps.LatLngBounds();
-
-    initialLocations.forEach(function(location){
-        self.locationList.push(new Location(location));
-        bounds.extend(location.position);
+    initialLocations.forEach(function(initialLocation){
+        self.initialLocationList.push(new Location(initialLocation, self.populateInfowindow));
+        bounds.extend(initialLocation.position);
     });
     map.fitBounds(bounds);
+
+    this.filterText = ko.observable("");
+    this.locationList = ko.computed(function() {
+        const filter = self.filterText().toLowerCase();
+        if (!filter) {
+            self.initialLocationList().forEach(function(location){
+                location.visible(true);
+            });
+            return self.initialLocationList();
+        } else {
+            return ko.utils.arrayFilter(self.initialLocationList(), function(location) {
+                const result = location.title().toLowerCase().search(filter) >= 0;
+                location.visible(result);
+                return result;
+            });
+        }
+    }, self);
 };
 
 function startApp() {
     ko.applyBindings(new ViewModel());
-    initialized = true;
 }
 
 function handleError() {

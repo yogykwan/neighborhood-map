@@ -10,10 +10,11 @@
 <body>
     <div class="container">
         <div class="location-list">
-            <input id="filter-box-text" type="text" placeholder="e.g., google">
+            <input type="text" placeholder="e.g., google"
+                   data-bind="textInput: filterText, valueUpdate: afterkeydown">
             <hr>
             <ul data-bind="foreach: locationList">
-                <li data-bind="text: title, click: populateInfoWindow()"></li>
+                <li data-bind="text: title, click: function() { $parent.populateInfowindow(marker); }"></li>
             </ul>
         </div>
         <div id="map"></div>
