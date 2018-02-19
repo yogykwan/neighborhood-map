@@ -84,7 +84,7 @@ const ViewModel = function() {
             marker.setAnimation(google.maps.Animation.BOUNCE);
             setTimeout(function() {
                 marker.setAnimation(null);
-            }, 350);
+            }, 300);
         }
     };
 
