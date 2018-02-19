@@ -1,5 +1,6 @@
 'use strict';
 
+// These are the real estate listings that will be shown to the user.
 const initialLocations = [
     {title: 'Google', position: {lat: 37.419858, lng: -122.078827}},
     {title: 'Facebook', position: {lat: 37.394439, lng: -122.080147}},
@@ -8,23 +9,29 @@ const initialLocations = [
     {title: 'Stanford', position: {lat: 37.427475, lng: -122.169719}},
 ];
 
+// Global google map object.
 let map;
 
 const Location = function(data, populateInfowindow) {
     let self = this;
+
     this.title = ko.observable(data.title);
     this.position = ko.observable(data.position);
     this.visible = ko.observable(true);
+
+    // Create new marker for each location.
     this.marker = new google.maps.Marker({
         position: data.position,
         title: data.title,
         animation: google.maps.Animation.DROP,
     });
 
+    // Popout info window with wikipedia source when clicking the marker.
     self.marker.addListener('click', function() {
         populateInfowindow(this);
     });
 
+    // Show or hide marker according to the value of `visible`.
     this.showMarker = ko.computed(function() {
         if(this.visible() === true) {
             this.marker.setMap(map);
@@ -38,6 +45,7 @@ const Location = function(data, populateInfowindow) {
 const ViewModel = function() {
     let self = this;
 
+    // Create a global google map object.
     map = new google.maps.Map(document.getElementById('map'), {
         center: initialLocations[0].position,
         zoom: 13,
@@ -46,6 +54,7 @@ const ViewModel = function() {
 
     let infowindow = new google.maps.InfoWindow();
 
+    // Require resouces from wikipedia's api using ajax, and populate info window with its response.
     this.populateInfowindow = function(marker) {
         if (infowindow.marker !==  marker) {
             infowindow.close();
@@ -81,6 +90,7 @@ const ViewModel = function() {
                 }
             });
 
+            // When showing the info window of some chosen location, let its marker bounce once for attention.
             marker.setAnimation(google.maps.Animation.BOUNCE);
             setTimeout(function() {
                 marker.setAnimation(null);
@@ -88,8 +98,8 @@ const ViewModel = function() {
         }
     };
 
+    // Construct `Location` objects using name and position of locations and fit them into map's boundary.
     this.initialLocationList = ko.observableArray([]);
-
     let bounds = new google.maps.LatLngBounds();
     initialLocations.forEach(function(initialLocation){
         self.initialLocationList.push(new Location(initialLocation, self.populateInfowindow));
@@ -97,10 +107,12 @@ const ViewModel = function() {
     });
     map.fitBounds(bounds);
 
+    // When user type into input box, we generate a list of filtered locations including the filter text.
     this.filterText = ko.observable("");
     this.locationList = ko.computed(function() {
         const filter = self.filterText().toLowerCase();
         if (!filter) {
+            // If there's no filter, display all locations.
             self.initialLocationList().forEach(function(location){
                 location.visible(true);
             });
@@ -119,6 +131,7 @@ function startApp() {
     ko.applyBindings(new ViewModel());
 }
 
+// When google api script can't be loaded, show this alert.
 function handleError() {
     alert('Unable to access Google Maps. Please check your network.');
 }
