@@ -10,8 +10,10 @@
 <body>
     <div class="container">
         <div class="location-list">
+            <input id="filter-box-text" type="text" placeholder="e.g., google">
+            <hr>
             <ul data-bind="foreach: locationList">
-                <li data-bind="text: title"></li>
+                <li data-bind="text: title, click: populateInfoWindow()"></li>
             </ul>
         </div>
         <div id="map"></div>

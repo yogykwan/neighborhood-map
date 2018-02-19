@@ -17,6 +17,13 @@ h1 {
     text-align: center;
 }
 
+hr {
+    background: #D0D7D9;
+    height: 1px;
+    margin: 20px 0 20px 0;
+    border: none;
+}
+
 .container {
     height: 100%;
     position: relative;
