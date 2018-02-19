@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="css/style.css">
+    <title>Neighborhood Map</title>
+</head>
+<body>
+    <div class="container">
+        <div class="location-list">
+            <ul data-bind="foreach: locationList">
+                <li data-bind="text: title"></li>
+            </ul>
+        </div>
+        <div id="map"></div>
+    </div>
+
+    <script src="js/libs/jquery-3.3.1.min.js" charset="utf-8"></script>
+    <script src="js/libs/knockout-3.4.2.js" charset="utf-8"></script>
+    <script src="js/app.js" charset="utf-8"></script>
+    <script async defer
+            src="https://maps.googleapis.com/maps/api/js?libraries=places&key=AIzaSyDtuzo9UyzY4ZCXEhn7WHUgwbx9EvuMWCA&v=3&callback=startApp"
+            onerror="handleError()">
+    </script>
+</body>
+</html>
