@@ -1,14 +1,5 @@
 'use strict';
 
-// These are the real estate listings that will be shown to the user.
-const initialLocations = [
-    {title: 'Google', position: {lat: 37.419858, lng: -122.078827}},
-    {title: 'Facebook', position: {lat: 37.394439, lng: -122.080147}},
-    {title: 'LinkedIn', position: {lat: 37.787884, lng: -122.396946}},
-    {title: 'Oracle', position: {lat: 37.5294, lng: -122.265966}},
-    {title: 'Stanford', position: {lat: 37.427475, lng: -122.169719}},
-];
-
 // Global google map object.
 let map;
 
@@ -64,9 +55,9 @@ const ViewModel = function() {
                 infowindow.marker = null;
             });
 
-            let contentStr = '<div class="title"><b>' + marker.title + '</b></div>';
-            let wikiUrl = 'https://en.wikipedia.org/w/api.php?action=opensearch&search=' + marker.title +
-                '&format=json&callback=wikiCallback';
+            let contentStr = `<div class="title"><b>${marker.title}</b></div>`;
+            let wikiUrl = `https://en.wikipedia.org/w/api.php?action=opensearch&search=${marker.title}
+            &format=json&callback=wikiCallback`;
             let wikiRequestTimeout = setTimeout(function(){
                 console.log('Failed to get wikipedia for ', marker.title);
             }, 2000);
@@ -77,8 +68,7 @@ const ViewModel = function() {
                     console.log('success', data);
                     const articles = data[3];
                     if (articles.length > 0) {
-                        contentStr += '<div><a target="_blank" href="' + articles[0] +
-                            '">' + articles[0] + '</a></div>';
+                        contentStr += `<div><a target="_blank" href="${articles[0]}">${articles[0]}</a></div>`;
                     }
                     clearTimeout(wikiRequestTimeout);
                     infowindow.setContent(contentStr);
